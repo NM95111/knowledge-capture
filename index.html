@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Capture — FTI Delta</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #f9f9f9;
+    --bg-hover: #f5f5f5;
+    --border: #e5e5e5;
+    --border-strong: #d4d4d4;
+    --text: #0a0a0a;
+    --text-secondary: #737373;
+    --text-tertiary: #a3a3a3;
+    --accent: #18181b;
+    --accent-fg: #ffffff;
+    --green: #16a34a;
+    --red: #dc2626;
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 10px;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 24px 80px;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { width: 100%; max-width: 560px; }
+
+  /* ── HEADER ── */
+  .page-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-eyebrow {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+
+  .page-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .page-desc {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ── TOKEN GATE ── */
+  #tokenGate { display: block; }
+  #mainApp   { display: none; }
+
+  .gate-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    margin-top: 8px;
+  }
+
+  .gate-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .gate-hint {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .gate-input {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    margin-bottom: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  .gate-input:focus {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+  }
+
+  .gate-input::placeholder { color: var(--text-tertiary); }
+
+  .gate-error {
+    font-size: 12px;
+    color: var(--red);
+    margin-top: 8px;
+    display: none;
+  }
+
+  .gate-error.visible { display: block; }
+
+  /* ── PROFILE CARD ── */
+  .profile-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .profile-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .profile-meta { flex: 1; min-width: 0; }
+
+  .profile-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .profile-role {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 1px;
+  }
+
+  .profile-badge {
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .profile-body { padding: 16px 20px; }
+
+  .profile-sub-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .expertise-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .expertise-tag {
+    font-size: 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 3px 10px;
+    color: var(--text-secondary);
+  }
+
+  .known-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .known-item {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .known-item::before {
+    content: '·';
+    position: absolute;
+    left: 4px;
+    color: var(--text-tertiary);
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+  /* ── FIELD ── */
+  .section { margin-bottom: 20px; }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .input-field {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .input-field:focus {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+  }
+
+  /* ── QUESTION ── */
+  .question-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    background: var(--bg-subtle);
+  }
+
+  .question-index {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .question-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* ── RECORDER ── */
+  .recorder-area {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .recorder-area.active { border-color: var(--red); }
+
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 28px;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .waveform.active { opacity: 1; }
+
+  .wave-bar {
+    width: 2.5px;
+    border-radius: 2px;
+    background: var(--red);
+    animation: wave 0.8s ease-in-out infinite;
+    min-height: 3px;
+  }
+
+  .wave-bar:nth-child(1) { animation-delay: 0s;    height: 10px; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s;  height: 18px; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s;  height: 26px; }
+  .wave-bar:nth-child(4) { animation-delay: 0.3s;  height: 14px; }
+  .wave-bar:nth-child(5) { animation-delay: 0.15s; height: 22px; }
+  .wave-bar:nth-child(6) { animation-delay: 0.25s; height: 12px; }
+  .wave-bar:nth-child(7) { animation-delay: 0.05s; height: 18px; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.35); opacity: 0.4; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  .record-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-strong);
+    background: var(--bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    outline: none;
+  }
+
+  .record-btn:hover { background: var(--bg-hover); }
+  .record-btn.recording { border-color: var(--red); background: #fef2f2; }
+
+  .record-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--red);
+    transition: all 0.2s;
+  }
+
+  .record-btn.recording .record-dot {
+    border-radius: 3px;
+    width: 13px;
+    height: 13px;
+  }
+
+  .record-status { font-size: 13px; color: var(--text-secondary); }
+
+  .timer {
+    font-size: 12px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--red);
+    min-height: 1.2em;
+  }
+
+  /* ── PROCESSING ── */
+  .processing {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+  }
+
+  .processing.visible { display: flex; }
+
+  .processing-dots { display: flex; gap: 3px; }
+
+  .processing-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    animation: blink 1.2s ease-in-out infinite;
+  }
+
+  .processing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .processing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+
+  .processing-text { font-size: 13px; color: var(--text-secondary); }
+
+  .error-msg { font-size: 13px; color: var(--red); margin-bottom: 12px; display: none; }
+  .error-msg.visible { display: block; }
+
+  /* ── TRANSCRIPT ── */
+  .transcript-section { margin-bottom: 20px; display: none; }
+  .transcript-section.visible { display: block; }
+
+  .transcript-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .transcript-hint { font-size: 12px; color: var(--text-tertiary); }
+
+  .transcript-box {
+    width: 100%;
+    min-height: 96px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.65;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    color: var(--text);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .transcript-box:focus {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+  }
+
+  /* ── BUTTONS ── */
+  .btn-row { display: flex; gap: 8px; align-items: center; }
+
+  .btn-primary {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--accent);
+    color: var(--accent-fg);
+    border: none;
+    border-radius: var(--radius);
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-ghost {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    background: none;
+    color: var(--text-tertiary);
+    border: none;
+    padding: 9px 0;
+    cursor: pointer;
+  }
+
+  .btn-ghost:hover { color: var(--text-secondary); }
+
+  .btn-hint { font-size: 12px; color: var(--text-tertiary); margin-left: 4px; }
+
+  /* ── OUTPUT ── */
+  .output-section { display: none; margin-top: 28px; animation: fadeUp 0.3s ease; }
+  .output-section.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .output-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    letter-spacing: 0.01em;
+  }
+
+  .cv-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .cv-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-subtle);
+  }
+
+  .cv-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .cv-name { font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+  .cv-subrole { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+
+  .cv-body { padding: 18px; }
+
+  .cv-row { margin-bottom: 16px; }
+  .cv-row:last-child { margin-bottom: 0; }
+
+  .cv-row-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+  }
+
+  .cv-summary { font-size: 13px; line-height: 1.65; color: var(--text); }
+
+  .cv-bullets { list-style: none; padding: 0; }
+
+  .cv-bullets li {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    padding-left: 14px;
+    position: relative;
+    margin-bottom: 4px;
+  }
+
+  .cv-bullets li::before {
+    content: '·';
+    position: absolute;
+    left: 3px;
+    color: var(--text-tertiary);
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .cv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .cv-tag {
+    font-size: 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 3px 10px;
+    color: var(--text-secondary);
+  }
+
+  .cv-footer {
+    padding: 10px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    background: var(--bg-subtle);
+  }
+
+  .cv-footer-text { font-size: 12px; color: var(--text-tertiary); }
+
+  /* ── SUCCESS ── */
+  .success-banner {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .success-banner.visible { display: flex; }
+
+  /* ── PAGE FOOTER ── */
+  .page-footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <p class="page-eyebrow">FTI Delta · Knowledge Repository</p>
+    <h1 class="page-title">Capture your expertise</h1>
+    <p class="page-desc">Speak your answer to the question below. Your response will be transcribed and structured automatically.</p>
+  </div>
+
+  <!-- TOKEN GATE -->
+  <div id="tokenGate">
+    <div class="gate-card">
+      <label class="gate-label">Enter your access code</label>
+      <p class="gate-hint">You received this code in the email from Nicolas Malha. Paste it below to get started.</p>
+      <input type="password" class="gate-input" id="tokenInput" placeholder="ghp_..." autocomplete="off" />
+      <div class="btn-row">
+        <button class="btn-primary" onclick="authenticate()">Continue</button>
+      </div>
+      <p class="gate-error" id="gateError">Invalid code or could not load your profile. Please check and try again.</p>
+    </div>
+  </div>
+
+  <!-- MAIN APP (hidden until authenticated) -->
+  <div id="mainApp">
+
+    <!-- Profile card (populated dynamically) -->
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar" id="profileAvatar">—</div>
+        <div class="profile-meta">
+          <p class="profile-name" id="profileName">—</p>
+          <p class="profile-role" id="profileRole">—</p>
+        </div>
+        <span class="profile-badge" id="profileBadge">—</span>
+      </div>
+      <div class="profile-body">
+        <p class="profile-sub-label">Areas of expertise</p>
+        <div class="expertise-row" id="profileExpertise"></div>
+        <p class="profile-sub-label">What we already know</p>
+        <div class="known-list" id="profileBackground"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Name field -->
+    <div class="section">
+      <label class="section-label">Your name & role</label>
+      <input type="text" class="input-field" id="nameInput" />
+    </div>
+
+    <!-- Question -->
+    <div class="question-card">
+      <p class="question-index">Question 01 / 01</p>
+      <p class="question-text" id="questionText">—</p>
+    </div>
+
+    <!-- Recorder -->
+    <div class="recorder-area" id="recorderArea">
+      <div class="waveform" id="waveform">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+      <button class="record-btn" id="recordBtn" onclick="toggleRecording()">
+        <div class="record-dot"></div>
+      </button>
+      <p class="record-status" id="recordLabel">Click to start recording</p>
+      <span class="timer" id="timer"></span>
+    </div>
+
+    <!-- Processing -->
+    <div class="processing" id="processingIndicator">
+      <div class="processing-dots">
+        <div class="processing-dot"></div>
+        <div class="processing-dot"></div>
+        <div class="processing-dot"></div>
+      </div>
+      <span class="processing-text" id="processingText">Transcribing your answer…</span>
+    </div>
+
+    <p class="error-msg" id="errorMsg"></p>
+
+    <!-- Transcript -->
+    <div class="transcript-section" id="transcriptSection">
+      <div class="transcript-header">
+        <span class="section-label" style="margin:0">Transcript</span>
+        <span class="transcript-hint">Edit if needed before submitting</span>
+      </div>
+      <textarea class="transcript-box" id="transcriptBox"></textarea>
+    </div>
+
+    <!-- Submit -->
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn-primary" id="submitBtn" onclick="extractAndSubmit()" disabled>Extract knowledge</button>
+      <span class="btn-hint" id="submitHint">Record your answer first</span>
+    </div>
+
+    <!-- Success -->
+    <div class="success-banner" id="successBanner">
+      ✓ Saved to knowledge base
+    </div>
+
+    <!-- Output -->
+    <div class="output-section" id="outputSection">
+      <p class="output-label">Extracted knowledge</p>
+      <div class="cv-card">
+        <div class="cv-card-header">
+          <div class="cv-avatar" id="outAvatar">—</div>
+          <div>
+            <p class="cv-name" id="outName">—</p>
+            <p class="cv-subrole" id="outSubrole">—</p>
+          </div>
+        </div>
+        <div class="cv-body">
+          <div class="cv-row">
+            <p class="cv-row-label">Knowledge contribution</p>
+            <p class="cv-summary" id="outSummary"></p>
+          </div>
+          <div class="cv-row">
+            <p class="cv-row-label">Key insights</p>
+            <ul class="cv-bullets" id="outInsights"></ul>
+          </div>
+          <div class="cv-row">
+            <p class="cv-row-label">Relevant to</p>
+            <div class="cv-tags" id="outTags"></div>
+          </div>
+        </div>
+        <div class="cv-footer">
+          <span class="cv-footer-text" id="outContributor"></span>
+          <span class="cv-footer-text" id="outDate"></span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-ghost" onclick="resetAll()">Start over</button>
+      </div>
+    </div>
+
+  </div><!-- end mainApp -->
+
+  <div class="page-footer">
+    <span>Internal use only · FTI Delta</span>
+    <span>Knowledge Repository v1.0</span>
+  </div>
+
+</div>
+
+<script>
+  // ── CONFIG ───────────────────────────────────────────────────────────────
+  const GITHUB_USER       = 'NM95111';
+  const PRIVATE_REPO      = 'knowledge-base';
+  const PUBLIC_REPO       = 'knowledge-capture';
+  const PROFILES_PATH     = 'profiles';
+  const KNOWLEDGE_PATH    = 'knowledge';
+
+  // ── STATE ────────────────────────────────────────────────────────────────
+  let githubToken   = '';
+  let openaiKey     = '';
+  let profile       = null;
+  let extractedData = null;
+  let mediaRecorder = null;
+  let audioChunks   = [];
+  let isRecording   = false;
+  let timerInterval = null;
+  let timerSeconds  = 0;
+
+  // ── GET USER FROM URL ────────────────────────────────────────────────────
+  function getUserFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('user') || '';
+  }
+
+  // ── AUTHENTICATE ─────────────────────────────────────────────────────────
+  async function authenticate() {
+    const token = document.getElementById('tokenInput').value.trim();
+    const user  = getUserFromURL();
+
+    if (!token) { showGateError('Please enter your access code.'); return; }
+    if (!user)  { showGateError('No user specified in the link. Please use the link from your email.'); return; }
+
+    // Try to fetch the profile from the private repo
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GITHUB_USER}/${PRIVATE_REPO}/contents/${PROFILES_PATH}/${user}.json`,
+        { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' } }
+      );
+
+      if (!res.ok) { showGateError('Invalid code or profile not found. Please check and try again.'); return; }
+
+      const data  = await res.json();
+      profile     = JSON.parse(atob(data.content.replace(/\n/g, '')));
+      githubToken = token;
+
+      // Try to get OpenAI key from private repo config
+      const configRes = await fetch(
+        `https://api.github.com/repos/${GITHUB_USER}/${PRIVATE_REPO}/contents/config.json`,
+        { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' } }
+      );
+
+      if (configRes.ok) {
+        const configData = await configRes.json();
+        const config     = JSON.parse(atob(configData.content.replace(/\n/g, '')));
+        openaiKey        = config.openai_key || '';
+      }
+
+      loadApp();
+
+    } catch (err) {
+      showGateError('Could not connect. Check your internet connection and try again.');
+    }
+  }
+
+  function showGateError(msg) {
+    const el = document.getElementById('gateError');
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+
+  // ── LOAD APP ─────────────────────────────────────────────────────────────
+  function loadApp() {
+    // Hide gate, show app
+    document.getElementById('tokenGate').style.display = 'none';
+    document.getElementById('mainApp').style.display   = 'block';
+
+    // Populate profile card
+    const initials = profile.name.split(' ').map(n => n[0]).slice(0, 2).join('');
+    document.getElementById('profileAvatar').textContent = initials;
+    document.getElementById('profileName').textContent   = profile.name;
+    document.getElementById('profileRole').textContent   = `${profile.role} · ${profile.location}`;
+    document.getElementById('profileBadge').textContent  = profile.experience;
+
+    const expertiseEl = document.getElementById('profileExpertise');
+    (profile.expertise || []).forEach(e => {
+      const span = document.createElement('span');
+      span.className   = 'expertise-tag';
+      span.textContent = e;
+      expertiseEl.appendChild(span);
+    });
+
+    const bgEl = document.getElementById('profileBackground');
+    (profile.background || []).forEach(b => {
+      const p = document.createElement('p');
+      p.className   = 'known-item';
+      p.textContent = b;
+      bgEl.appendChild(p);
+    });
+
+    document.getElementById('nameInput').value    = `${profile.name}, ${profile.role}`;
+    document.getElementById('questionText').textContent = profile.question;
+  }
+
+  // ── RECORDING ────────────────────────────────────────────────────────────
+  async function toggleRecording() {
+    if (!isRecording) { await startRecording(); } else { stopRecording(); }
+  }
+
+  async function startRecording() {
+    showError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks  = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = async () => { stream.getTracks().forEach(t => t.stop()); await transcribeAudio(); };
+      mediaRecorder.start(250);
+      isRecording = true;
+      document.getElementById('recordBtn').classList.add('recording');
+      document.getElementById('recorderArea').classList.add('active');
+      document.getElementById('recordLabel').textContent = 'Recording — click to stop';
+      document.getElementById('waveform').classList.add('active');
+      document.getElementById('transcriptSection').classList.remove('visible');
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('submitHint').textContent = 'Stop recording first';
+      timerSeconds = 0; updateTimer();
+      timerInterval = setInterval(updateTimer, 1000);
+    } catch {
+      showError('Microphone access denied. Please allow microphone access in your browser settings.');
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      isRecording = false;
+      document.getElementById('recordBtn').classList.remove('recording');
+      document.getElementById('recorderArea').classList.remove('active');
+      document.getElementById('recordLabel').textContent = 'Click to start recording';
+      document.getElementById('waveform').classList.remove('active');
+      document.getElementById('timer').textContent = '';
+      clearInterval(timerInterval);
+    }
+  }
+
+  function updateTimer() {
+    timerSeconds++;
+    const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+    const s = String(timerSeconds % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = m + ':' + s;
+  }
+
+  // ── TRANSCRIPTION ─────────────────────────────────────────────────────────
+  async function transcribeAudio() {
+    showProcessing(true, 'Transcribing your answer…');
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const formData = new FormData();
+    formData.append('file', blob, 'recording.webm');
+    formData.append('model', 'whisper-1');
+    try {
+      const res  = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + openaiKey },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.error) { showError('Transcription error: ' + data.error.message); showProcessing(false); return; }
+      document.getElementById('transcriptBox').value = data.text || '';
+      document.getElementById('transcriptSection').classList.add('visible');
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitHint').textContent = 'Review transcript then submit';
+    } catch {
+      showError('Network error during transcription.');
+    }
+    showProcessing(false);
+  }
+
+  // ── EXTRACTION ────────────────────────────────────────────────────────────
+  async function extractAndSubmit() {
+    const name       = document.getElementById('nameInput').value.trim() || profile.name;
+    const transcript = document.getElementById('transcriptBox').value.trim();
+    if (!transcript) { showError('No transcript to process.'); return; }
+
+    document.getElementById('submitBtn').disabled = true;
+    showProcessing(true, 'Extracting and structuring knowledge…');
+
+    const prompt = `You are a knowledge manager at a top-tier TMT strategy consulting firm (FTI Delta).
+A consultant named ${name} answered this question:
+"${profile.question}"
+
+Their spoken answer: "${transcript.replace(/"/g, '\\"')}"
+
+Background: ${profile.experience} consulting. Expertise in ${(profile.expertise || []).join(', ')}.
+
+Write in professional consulting CV/bio style — precise, active voice, third-person, bullet points starting with strong verbs. Return ONLY valid JSON, no markdown:
+{
+  "contributor": "${name}",
+  "role": "${profile.role}",
+  "firm": "${profile.firm}",
+  "question": "${profile.question.replace(/"/g, '\\"')}",
+  "transcript": "${transcript.replace(/"/g, '\\"').replace(/\n/g, ' ')}",
+  "summary": "2-3 sentence third-person professional bio style summary. Active voice, no filler.",
+  "insights": ["Verb-led insight 1", "Verb-led insight 2", "Verb-led insight 3"],
+  "tags": ["tag1", "tag2", "tag3"],
+  "captured_at": "${new Date().toISOString()}"
+}`;
+
+    try {
+      const res  = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + openaiKey },
+        body: JSON.stringify({
+          model: 'gpt-4o', max_tokens: 1000,
+          messages: [
+            { role: 'system', content: 'You are a knowledge manager. Respond only with valid JSON. No markdown, no backticks.' },
+            { role: 'user',   content: prompt }
+          ]
+        })
+      });
+      const data = await res.json();
+      if (data.error) { showError('Extraction error: ' + data.error.message); showProcessing(false); document.getElementById('submitBtn').disabled = false; return; }
+      parseAndRender(data.choices?.[0]?.message?.content || '', name, transcript);
+    } catch {
+      showError('Extraction failed. Check your connection.');
+      document.getElementById('submitBtn').disabled = false;
+    }
+    showProcessing(false);
+  }
+
+  function parseAndRender(text, name, transcript) {
+    try {
+      extractedData = JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch {
+      extractedData = { contributor: name, role: profile.role, firm: profile.firm, transcript, summary: text.substring(0, 400), insights: ['See transcript for detail'], tags: ['client-knowledge'], captured_at: new Date().toISOString() };
+    }
+
+    const d = extractedData;
+    document.getElementById('outSummary').textContent = d.summary || '';
+
+    const ul = document.getElementById('outInsights');
+    ul.innerHTML = '';
+    (d.insights || []).forEach(i => { const li = document.createElement('li'); li.textContent = i; ul.appendChild(li); });
+
+    document.getElementById('outTags').innerHTML = (d.tags || []).map(t => `<span class="cv-tag">${t}</span>`).join('');
+
+    const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('');
+    document.getElementById('outAvatar').textContent      = initials;
+    document.getElementById('outName').textContent        = name;
+    document.getElementById('outSubrole').textContent     = `${d.role} · ${profile.firm} · ${profile.location}`;
+    document.getElementById('outContributor').textContent = name + ' · ' + d.role;
+    document.getElementById('outDate').textContent        = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    document.getElementById('outputSection').classList.add('visible');
+    document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    saveToGitHub(d);
+  }
+
+  // ── GITHUB SAVE ───────────────────────────────────────────────────────────
+  function buildMarkdown(d) {
+    const date     = new Date(d.captured_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const insights = (d.insights || []).map(i => `- ${i}`).join('\n');
+    const tags     = (d.tags || []).join(', ');
+    return `# ${d.contributor} — Knowledge Contribution
+
+**Role:** ${d.role}  
+**Firm:** ${d.firm}  
+**Date:** ${date}
+
+---
+
+## Question
+
+${d.question}
+
+---
+
+## Summary
+
+${d.summary}
+
+---
+
+## Key Insights
+
+${insights}
+
+---
+
+## Tags
+
+${tags}
+
+---
+
+## Full Transcript
+
+${d.transcript}
+`;
+  }
+
+  function buildFilename(contributor) {
+    const today    = new Date();
+    const yyyy     = today.getFullYear();
+    const mm       = String(today.getMonth() + 1).padStart(2, '0');
+    const dd       = String(today.getDate()).padStart(2, '0');
+    const namePart = (contributor || 'unknown').toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+    return `${namePart}-knowledge-${yyyy}-${mm}-${dd}.md`;
+  }
+
+  async function saveToGitHub(d) {
+    try {
+      const md       = buildMarkdown(d);
+      const filename = buildFilename(d.contributor);
+      const path     = `${KNOWLEDGE_PATH}/${filename}`;
+      const content  = btoa(unescape(encodeURIComponent(md)));
+
+      // Check if file exists
+      let sha = null;
+      const check = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${PRIVATE_REPO}/contents/${path}`, {
+        headers: { 'Authorization': 'Bearer ' + githubToken, 'Accept': 'application/vnd.github+json' }
+      });
+      if (check.ok) { const existing = await check.json(); sha = existing.sha; }
+
+      const body = { message: `Add knowledge: ${d.contributor} — ${new Date().toISOString().split('T')[0]}`, content, ...(sha ? { sha } : {}) };
+
+      const push = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${PRIVATE_REPO}/contents/${path}`, {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + githubToken, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (push.ok) {
+        document.getElementById('successBanner').classList.add('visible');
+      } else {
+        const err = await push.json();
+        console.error('GitHub save error:', err.message);
+      }
+    } catch (err) {
+      console.error('GitHub save failed:', err);
+    }
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  function showProcessing(show, text) {
+    const el = document.getElementById('processingIndicator');
+    el.classList.toggle('visible', show);
+    if (text) document.getElementById('processingText').textContent = text;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.toggle('visible', !!msg);
+  }
+
+  function resetAll() {
+    extractedData = null; audioChunks = [];
+    document.getElementById('transcriptBox').value = '';
+    document.getElementById('transcriptSection').classList.remove('visible');
+    document.getElementById('outputSection').classList.remove('visible');
+    document.getElementById('successBanner').classList.remove('visible');
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitHint').textContent = 'Record your answer first';
+    showError(''); showProcessing(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
