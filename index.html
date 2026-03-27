@@ -630,13 +630,16 @@
   <!-- TOKEN GATE -->
   <div id="tokenGate">
     <div class="gate-card">
-      <label class="gate-label">Enter your access code</label>
-      <p class="gate-hint">You received this code in the email from Nicolas Malha. Paste it below to get started.</p>
-      <input type="password" class="gate-input" id="tokenInput" placeholder="ghp_..." autocomplete="off" />
+      <label class="gate-label">Your FTI email username</label>
+      <p class="gate-hint">Enter your username as it appears before @fticonsulting.com — e.g. <strong>nicolas.malha</strong></p>
+      <input type="text" class="gate-input" id="usernameInput" placeholder="firstname.lastname" autocomplete="off" autocapitalize="none" />
+      <label class="gate-label" style="margin-top:16px;">Access code</label>
+      <p class="gate-hint">First 4 letters of your first name in capitals, followed by @FTI2026 — e.g. <strong>NICO@FTI2026</strong></p>
+      <input type="text" class="gate-input" id="tokenInput" placeholder="XXXX@FTI2026" autocomplete="off" />
       <div class="btn-row">
         <button class="btn-primary" onclick="authenticate()">Continue</button>
       </div>
-      <p class="gate-error" id="gateError">Invalid code or could not load your profile. Please check and try again.</p>
+      <p class="gate-error" id="gateError"></p>
     </div>
   </div>
 
@@ -777,6 +780,47 @@
   const PROFILES_PATH     = 'profiles';
   const KNOWLEDGE_PATH    = 'knowledge';
 
+  // Encrypted GitHub token — decrypted at runtime using the suffix @FTI2026
+  // Generated with AES-256-CBC, key = SHA-256('@FTI2026')
+  const ENCRYPTED_TOKEN = '1204a9f0f3b2adb3505e4926c9d3a31a:65c86b0fb5a946ad7e9c13fab9f24ead5c71430a32fe6985f051da87c850dad616dbf43a9de9a8b020241f1eded59f0c';
+
+  // ── DECRYPTION ───────────────────────────────────────────────────────────
+  // Uses Web Crypto API (built into all modern browsers — no libraries needed)
+  // Key = SHA-256 hash of '@FTI2026'
+  // The user enters e.g. NICO@FTI2026 — we extract @FTI2026 and use it as the key
+
+  async function decryptToken(userCode) {
+    const SUFFIX = '@FTI2026';
+    if (!userCode.toUpperCase().includes(SUFFIX)) return null;
+
+    try {
+      const [ivHex, encryptedHex] = ENCRYPTED_TOKEN.split(':');
+      const iv        = hexToBytes(ivHex);
+      const encrypted = hexToBytes(encryptedHex);
+
+      // Derive key: SHA-256 of '@FTI2026' — matches Node.js crypto.createHash('sha256').update(key).digest()
+      const keyBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(SUFFIX));
+
+      const key = await crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'AES-CBC' }, false, ['decrypt']
+      );
+
+      const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, encrypted);
+      return new TextDecoder().decode(decrypted);
+
+    } catch {
+      return null;
+    }
+  }
+
+  function hexToBytes(hex) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+      bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+    }
+    return bytes;
+  }
+
   // ── STATE ────────────────────────────────────────────────────────────────
   let githubToken   = '';
   let openaiKey     = '';
@@ -788,37 +832,49 @@
   let timerInterval = null;
   let timerSeconds  = 0;
 
-  // ── GET USER FROM URL ────────────────────────────────────────────────────
-  function getUserFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('user') || '';
-  }
-
   // ── AUTHENTICATE ─────────────────────────────────────────────────────────
   async function authenticate() {
-    const token = document.getElementById('tokenInput').value.trim();
-    const user  = getUserFromURL();
+    const rawUsername = document.getElementById('usernameInput').value.trim().toLowerCase();
+    const userCode    = document.getElementById('tokenInput').value.trim().toUpperCase();
 
-    if (!token) { showGateError('Please enter your access code.'); return; }
-    if (!user)  { showGateError('No user specified in the link. Please use the link from your email.'); return; }
+    // Validate username — must contain a dot (firstname.lastname)
+    if (!rawUsername) { showGateError('Please enter your FTI email username.'); return; }
+    if (!rawUsername.includes('.')) { showGateError('Please enter your username in firstname.lastname format.'); return; }
 
-    // Try to fetch the profile from the private repo
+    // Strip the dot → nicolasmalha — this is the profile filename
+    const user = rawUsername.replace('.', '');
+
+    // Validate access code format
+    if (!userCode) { showGateError('Please enter your access code.'); return; }
+    if (!userCode.includes('@FTI2026')) {
+      showGateError('Invalid code format. Your code should follow the pattern: XXXX@FTI2026');
+      return;
+    }
+
+    // Decrypt the GitHub token
+    const decryptedToken = await decryptToken(userCode);
+    if (!decryptedToken) {
+      showGateError('Invalid access code. Please check and try again.');
+      return;
+    }
+
+    // Fetch the profile from the private repo
     try {
       const res = await fetch(
         `https://api.github.com/repos/${GITHUB_USER}/${PRIVATE_REPO}/contents/${PROFILES_PATH}/${user}.json`,
-        { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' } }
+        { headers: { 'Authorization': 'Bearer ' + decryptedToken, 'Accept': 'application/vnd.github+json' } }
       );
 
-      if (!res.ok) { showGateError('Invalid code or profile not found. Please check and try again.'); return; }
+      if (!res.ok) { showGateError('Profile not found. Make sure your username matches your FTI email exactly.'); return; }
 
       const data  = await res.json();
       profile     = JSON.parse(atob(data.content.replace(/\n/g, '')));
-      githubToken = token;
+      githubToken = decryptedToken;
 
-      // Try to get OpenAI key from private repo config
+      // Fetch OpenAI key from private repo config
       const configRes = await fetch(
         `https://api.github.com/repos/${GITHUB_USER}/${PRIVATE_REPO}/contents/config.json`,
-        { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' } }
+        { headers: { 'Authorization': 'Bearer ' + decryptedToken, 'Accept': 'application/vnd.github+json' } }
       );
 
       if (configRes.ok) {
